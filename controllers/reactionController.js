@@ -10,7 +10,6 @@ try {
     if (!targetObj){
         throw Error(`${targetType} not found,Create Reaction Error`)
     }
-    // Find the reaction of the current user
     let reaction = await Reaction.findOne({
       targetType,
       targetId,
@@ -29,7 +28,6 @@ try {
         message = "Updated reaction";
       }
     }
-    // Get the updated number of reactions in the targetType
     const reactionStat = await mongoose.model(targetType).findById(targetId, "reactions");
     console.log(reactionStat)
     console.log(reaction)

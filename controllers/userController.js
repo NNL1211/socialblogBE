@@ -55,7 +55,6 @@ userController.createData = async (req, res, next) => {
     if (user){
       throw new Error("This email is exist")
     }
-    // return next(new AppError(409, "User already exists", "Register Error"));
     const salt = await bcrypt.genSalt(10);
     const encodedPassword = await bcrypt.hash(password, salt);
     // console.log("what is ", encodedPassword);
