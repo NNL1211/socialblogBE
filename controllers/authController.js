@@ -36,7 +36,34 @@ authorController.loginWithEmail = async (req,res,next) =>{
     }
 }
 
-
+authorController.loginWithFacebookOrGoogle = async (req,res,next)=>{
+    try {
+        console.log("am i here")
+        let user = req.user
+        console.log( user)
+        if(user){
+            console.log("am i here 2")
+            user = await User.findByIdAndUpdate(
+                user._id,
+                { avatarUrl: user.avatarUrl }, // i want to get recent avatar picture from facebook
+                { new: true }
+            )
+            console.log("this is new",user)
+        }else{
+            throw new Error("Login Fail")
+        }
+        const accessToken = await user.generateToken()
+        res.status(200).json({
+            status:"success",
+            data: {user,accessToken}
+        })
+    } catch (err) {
+        res.status(400).json({
+			status: "fail",
+			error: err.message
+		})  
+    }
+}
 
 
 module.exports = authorController

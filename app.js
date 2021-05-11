@@ -5,8 +5,9 @@ const logger = require('morgan');
 const mongoose = require("mongoose")
 const indexRouter = require('./routes/index');
 const cors = require("cors")
+const passport = require("passport");
 require("dotenv").config();
-
+require("./helpers/passport")
 const app = express();
 
 mongoose
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors())
+app.use(passport.initialize());
 app.use('/api', indexRouter);
 
 
