@@ -14,6 +14,7 @@ body("password","pass is wrong").exists().notEmpty(),
 ,authController.loginWithEmail)
 
 router.post("/login/facebook",passport.authenticate("facebook-token"),authController.loginWithFacebookOrGoogle)
+router.post("/login/google",passport.authenticate('google-token'),authController.loginWithFacebookOrGoogle)
 
 
 module.exports= router
