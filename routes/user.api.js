@@ -34,4 +34,12 @@ const authMiddleware =require ("../middleware/authentication")
  */
  router.get("/me",authMiddleware.loginRequired, userController.getCurrentUser);
 
+ /**
+ * @route post api/verify_email
+ * @description Post users with verify_email
+ * @access Public
+ */
+
+  router.post("/verify_email", userController.verifyEmail);
+
  module.exports = router;

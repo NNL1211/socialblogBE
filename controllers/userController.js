@@ -1,5 +1,7 @@
 const User = require("../model/user");
 const bcrypt = require('bcrypt');
+const utilsHelper = require("../helpers/utils");
+const { emailInternalHelper, emailHelper } = require("../helpers/email");
 const userController = {};
 
 userController.getAllUser = async (req, res, next) => {
@@ -58,11 +60,21 @@ userController.createData = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const encodedPassword = await bcrypt.hash(password, salt);
     // console.log("what is ", encodedPassword);
-    user = new User({ name,email,avatarUrl,password:encodedPassword,emailVerified });
-    await user.save();
+    const emailVerificationCode = utilsHelper.generateRandomHexString(20);
+    let newuser = new User({ name,email,avatarUrl,password:encodedPassword,emailVerified:false,emailVerificationCode,});
+    await newuser.save();
+    //time to send to email with verification
+    const verificationURL = `${process.env.FRONTEND_URL}/verify?code=${emailVerificationCode}`
+    const emailData = await emailHelper.renderEmailTemplate("verify_email",{name,code:verificationURL},email)
+
+    if(emailData.error){
+      throw new Error(emailData.error)
+    }else{
+      emailHelper.send(emailData)
+    }
     res.status(200).json({
       status: "Success",
-      data: {user},
+      data: {newuser},
     });
   } catch (error) {
     res.status(400).json({
@@ -450,6 +462,43 @@ userController.getFriendList = async (req, res, next) => {
       error: error.message,
     });
   }
+};
+
+// -----------------------------> verify email
+
+userController.verifyEmail = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    console.log("this is verify code",code)
+    let user = await User.findOne({
+      emailVerificationCode: code
+    });
+    console.log("this is userfinded",user)
+    if (!user) {
+      res.status(400).json({ error: "Invalid Email Verification Token" });
+      return;
+    }
+    user = await User.findByIdAndUpdate(
+      user._id,
+      {
+        $set: { emailVerified: true },
+        // $unset: { emailVerificationCode: 1 }
+      },
+      { new: true }
+    );
+    // console.log(user)
+    accessToken = await user.generateToken();
+    res.status(200).json({
+      status: "Success",
+      data: { user, accessToken },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "Fail",
+      error: error.message,
+    });
+  }
+
 };
 
 module.exports = userController;

@@ -6,6 +6,7 @@ const mongoose = require("mongoose")
 const indexRouter = require('./routes/index');
 const cors = require("cors")
 const passport = require("passport");
+const {emailInternalHelper}= require("./helpers/email")
 require("dotenv").config();
 require("./helpers/passport")
 const app = express();
@@ -19,6 +20,7 @@ mongoose
 	})
 	.then(() => {
 		console.log(`MongoDB database connection established successfully!`);
+        emailInternalHelper.createTemplatesIfNotExists();
         // require("./testing/testSchema");
 	})
 	.catch((err) => console.error("Could not connect to database!", err));
