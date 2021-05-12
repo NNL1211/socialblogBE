@@ -43,7 +43,7 @@ emailInternalHelper.createTemplatesIfNotExists = async () =>{
             <br />
             If you face any difficulty during the sign-up, do get in
             touch with our Support team: apply@nhatlam.vn
-            <br /> <br /> Always be learning!
+            <br /> <br /> Always be learning!!!
             <br /> CoderSchool Team`,
             variables: ["name", "code"]
         })
