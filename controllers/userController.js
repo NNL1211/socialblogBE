@@ -1,4 +1,5 @@
 const User = require("../model/user");
+const Friendship = require("../model/friendship")
 const bcrypt = require('bcrypt');
 const utilsHelper = require("../helpers/utils");
 const { emailInternalHelper, emailHelper } = require("../helpers/email");
@@ -8,6 +9,7 @@ userController.getAllUser = async (req, res, next) => {
   try {
     //1. read the query information
     let {page,limit,sortBy,...filter}=req.query
+    currentUserId = req.userId
     page = parseInt(page) || 1
     limit = parseInt(limit) || 10
     //2. get total users number
@@ -17,10 +19,28 @@ userController.getAllUser = async (req, res, next) => {
     //4. caculate how many data you will skip (offset)
     const offset = limit * (page-1)
     //5. get Users based on query info
-    const user = await User.find(filter).skip(offset).limit(limit).sort({ ...sortBy, createdAt: -1 })
+    const users = await User.find(filter).skip(offset).limit(limit).sort({ ...sortBy, createdAt: -1 })
+    // console.log("am i hereeee")
+    // console.log(users)
+    const promises = users.map(async (user) => {
+    let temp = user.toJSON();
+    // console.log(temp)
+    temp.friendship = await Friendship.findOne(
+      {
+        $or: [
+          { from: currentUserId, to: user._id },
+          { from: user._id, to: currentUserId },
+        ],
+      },
+      "-_id status updatedAt"
+    );
+    return temp;
+  });
+  const usersWithFriendship = await Promise.all(promises);
+  // console.log("this is friendship",usersWithFriendship)
     res.status(200).json({
       status: "Success",
-      data: {user,totalPages},
+      data: {users:usersWithFriendship,totalPages},
     });
   } catch (error) {
     res.status(400).json({
@@ -129,7 +149,7 @@ userController.sendFriendRequest = async (req, res, next) => {
   try {
     const userId = req.userId; // From
     const toUserId = req.params.id; // To
-  
+    
     const user = await User.findById(toUserId);
     if (!user) {
       throw new Error("User not found ,Send Friend Request Error")
@@ -362,7 +382,8 @@ userController.getReceivedFriendRequestList = async (req, res, next) => {
     const userId = req.userId;
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
-
+    
+    console.log("am i herrrrrrrreeeee",userId)
     let requestList = await Friendship.find({
       to: userId,
       status: "requesting",
