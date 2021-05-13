@@ -65,6 +65,7 @@ userController.createData = async (req, res, next) => {
     await newuser.save();
     //time to send to email with verification
     const verificationURL = `${process.env.FRONTEND_URL}/verify?code=${emailVerificationCode}`
+    // const verificationURL = `https://nhatlamsocialblog.netlify.app/verify?code=${emailVerificationCode}`
     const emailData = await emailHelper.renderEmailTemplate("verify_email",{name,code:verificationURL},email)
 
     if(emailData.error){
